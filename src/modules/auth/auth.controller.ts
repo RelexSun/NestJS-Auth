@@ -1,13 +1,24 @@
-import { Body, Controller, Get, Post, Res, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Res,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create_user.dto';
 import { LoginUserDto } from './dto/login_user.dto';
-import { Response, Request } from 'express';
+import { Response } from 'express';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import { RefreshJwtGuard } from './guards/refresh-jwt-auth.guard';
 
 @Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @UseGuards(LocalAuthGuard)
   @Post('register')
   async signUp(@Body() createUserDto: CreateUserDto) {
     return this.authService.register(createUserDto);
@@ -21,13 +32,17 @@ export class AuthController {
     return this.authService.login(loginUser, response);
   }
 
-  @Get('user')
-  async getUser(@Req() request: Request) {
-    return this.authService.getService(request);
-  }
-
   @Post('logout')
   async signOut(@Res({ passthrough: true }) response: Response) {
     return this.authService.logout(response);
+  }
+
+  @UseGuards(RefreshJwtGuard)
+  @Post('refresh')
+  async refreshToken(
+    @Body() loginUser: LoginUserDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return this.authService.refreshToken(loginUser, response);
   }
 }

@@ -22,17 +22,17 @@ export class AuthService {
   ) {}
 
   // TODOD: refactoring code pel krouy
-  // async validateUser(params: CreateUserDto): Promise<User> {
-  //   const { email, password } = params;
-  //   const user = await this.userRepository.findOne({ where: { email } });
-  //   if (!user) throw new BadRequestException('Please register');
+  async validateUser(params: LoginUserDto): Promise<User> {
+    const { email, password } = params;
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) throw new BadRequestException('Please register');
 
-  //   const isMatch: boolean = bcrypt.compareSync(password, user.password);
+    const isMatch: boolean = bcrypt.compareSync(password, user.password);
 
-  //   if (!isMatch) throw new BadRequestException('Password does not match');
+    if (!isMatch) throw new BadRequestException('Password does not match');
 
-  //   return user;
-  // }
+    return user;
+  }
 
   async register(params: CreateUserDto): Promise<User> {
     const { email, password } = params;
@@ -67,32 +67,57 @@ export class AuthService {
       throw new BadRequestException('Incorrect password');
     }
 
-    const jwt = await this.jwtService.signAsync({ id: existingUser.id });
+    const accessToken = await this.jwtService.signAsync({
+      id: existingUser.id,
+    });
 
-    response.cookie('jwt', jwt, { httpOnly: true });
+    const refreshToken = await this.jwtService.signAsync(
+      {
+        id: existingUser.id,
+      },
+      { expiresIn: '7d' },
+    );
 
-    return jwt;
-  }
+    response.cookie('jwt', accessToken, { httpOnly: true });
 
-  async getService(@Req() request: Request) {
-    try {
-      const cookie = request.cookies['jwt'];
-      const data = await this.jwtService.verifyAsync(cookie);
-      if (!data) throw new UnauthorizedException();
-
-      const user = await this.userRepository.findOne({
-        where: { id: data['id'] },
-      });
-      const { password, ...result } = user;
-
-      return result;
-    } catch {
-      throw new UnauthorizedException();
-    }
+    return { ...params, accessToken, refreshToken };
   }
 
   async logout(response: Response) {
     response.clearCookie('jwt');
     return { message: 'success' };
+  }
+
+  async refreshToken(params: LoginUserDto, response: Response) {
+    const { email, password } = params;
+    const existingUser = await this.userRepository.findOne({
+      where: { email },
+    });
+
+    if (!existingUser) throw new BadRequestException('Please register');
+
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      (await existingUser).password,
+    );
+
+    if (!isPasswordValid) {
+      throw new BadRequestException('Incorrect password');
+    }
+
+    const accessToken = await this.jwtService.signAsync({
+      id: existingUser.id,
+    });
+
+    const refreshToken = await this.jwtService.signAsync(
+      {
+        id: existingUser.id,
+      },
+      { expiresIn: '7d' },
+    );
+
+    response.cookie('jwt', accessToken, { httpOnly: true });
+
+    return { refreshToken /*  refreshToken */ };
   }
 }
