@@ -8,7 +8,7 @@ import { User } from '../entities/user.entity';
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(private authService: AuthService) {
     super({
-      jwtFromRequest: ExtractJwt.fromBodyField('accessToken'),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiartion: false,
       secretOrKey: `${process.env.JWT_SECRET}`,
     });

@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  Req,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -11,7 +6,7 @@ import { CreateUserDto } from './dto/create_user.dto';
 import { LoginUserDto } from './dto/login_user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { Response, Request } from 'express';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -80,7 +75,7 @@ export class AuthService {
 
     response.cookie('jwt', accessToken, { httpOnly: true });
 
-    return { ...params, accessToken, refreshToken };
+    return { accessToken, refreshToken };
   }
 
   async logout(response: Response) {
