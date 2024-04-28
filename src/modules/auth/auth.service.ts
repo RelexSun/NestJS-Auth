@@ -19,8 +19,16 @@ export class AuthService {
   // TODOD: refactoring code pel krouy
   async validateUser(params: LoginUserDto): Promise<User> {
     const { email, password } = params;
+
+    console.log(email);
+    console.log(password);
+
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) throw new BadRequestException('Please register');
+
+    if (!password || !user.password) {
+      throw new BadRequestException('Password not provided');
+    }
 
     const isMatch: boolean = bcrypt.compareSync(password, user.password);
 
@@ -31,6 +39,7 @@ export class AuthService {
 
   async register(params: CreateUserDto): Promise<User> {
     const { email, password } = params;
+
     const existingUser = await this.userRepository.findOne({
       where: { email },
     });
