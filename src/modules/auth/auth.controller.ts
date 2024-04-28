@@ -3,14 +3,14 @@ import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create_user.dto';
 import { LoginUserDto } from './dto/login_user.dto';
 import { Response } from 'express';
-import { LocalAuthGuard } from './guards/local-auth.guard';
+// import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RefreshJwtGuard } from './guards/refresh-jwt-auth.guard';
 
 @Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @UseGuards(LocalAuthGuard)
+  // @UseGuards(LocalAuthGuard)
   @Post('login')
   async signIn(
     @Body() loginUser: LoginUserDto,
