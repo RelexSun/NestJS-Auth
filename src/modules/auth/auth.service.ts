@@ -18,11 +18,8 @@ export class AuthService {
 
   // TODOD: refactoring code pel krouy
   async validateUser(params: LoginUserDto): Promise<User> {
-    const { email, password } = params;
-
-    console.log(email);
-    console.log(password);
-
+    const { email, password } = params; //TODO: undeifined
+    console.log(email, password);
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) throw new BadRequestException('Please register');
 
